@@ -9,6 +9,6 @@ if (environment.production) {
 
 bootstrap(Angular2FirebaseAppComponent,[
   FIREBASE_PROVIDERS,
-  defaultFirebase('https://angular2fire-board.firebaseio.com/'),
+  defaultFirebase('https://angular2-fireboard-demo.firebaseio.com/'),
   [provide(Window, {useValue: window})]
 ]);

@@ -1,0 +1,13 @@
+<div class="container-fluid">
+  <section class="main">
+      <br>
+      <p>Colour:<input type="color" [(ngModel)]="selectedColor" placeholder="color" value="{{selectedColor}}" />
+      <button (click)="onCleanCanvas()">Clean Board</button></p>
+      <div class="row-fluid" id="board-box">
+          <canvas id="board" #myBoard ></canvas>
+      </div>    
+      <div *ngFor="#line of observableLines | async"> </div>
+    </section>
+</div>
+
+  

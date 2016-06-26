@@ -11,103 +11,58 @@ import { Observable, Subject } from 'rxjs/Rx';
 })
 
 export class Angular2FirebaseAppComponent {
-  title = 'angular2-firebase works!';
-  users: FirebaseListObservable<any>;
+  //init variables
   lines: FirebaseListObservable<any>;
   observableLines: Observable<any[]>;
-  window;
   prevPoint;
   currentLine;
-  afDatabase;
-  selectedColor = "FFFFFF";
-  userCount = 0;
-  
+  selectedColor = "#000000";
   canvas;
   context:CanvasRenderingContext2D;
   @ViewChild("myBoard") myBoard;
 
-
-  constructor(af: AngularFire , @Inject(Window) window: Window) {
-    this.window = window;
-    this.users = af.database.list('/users');
-
+  constructor(af: AngularFire) {
     this.observableLines = af.database.list('/lines').map((lines) => {
-            lines.map((line)=>{
-                this.drawCanvasLine(line);
-                return line;
-            })
-            return lines;
-        });
-    
-    this.lines = af.database.list('/lines');
-       
-    // this.lines._ref.on('child_added', (child, prevKey) => {
-    //       this.drawCanvasLine(child);
-    //     });
-    // this.lines._ref.on('child_changed', (child, prevKey) => {
-    //       this.drawCanvasLine(child);
-    //     });
-    // this.lines._ref.on('child_removed', (child, prevKey) => {
-    //       this.clearCanvas();
-    //     });
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        lines.map((line)=>{
+            this.drawCanvasLine(line);
+            return line;
+        })
+        return lines;
+    });    
+    this.lines = af.database.list('/lines'); 
+          
   }
   
   getOffset(event) {
-      if (event.constructor === TouchEvent){
-        return {
-          x: event.touches[0].clientX - event.touches[0].target.offsetLeft,
-          y: event.touches[0].clientY - event.touches[0].target.offsetTop,
-      };
-      } else {
         return {
           x: event.offsetX === undefined ? event.layerX : event.offsetX,
           y: event.offsetY === undefined ? event.layerY : event.offsetY
       };
-      }
-      
-  }
-  deleteLines() {
-    this.lines.remove();
-  }
-        
-  ngOnInit() {
-    var myUsers = this.users;
-    var myUser = this.users.push({ userName: sessionStorage.getItem("userName") });
-    this.window.onunload = function(e) {
-        myUsers.remove(myUser);
-        return e.returnValue;
-    };
-    this.window.onbeforeunload = function () {
-        return "Do you really want to close?";
-    };
   }
   
   ngAfterViewInit() {
     
+      //Init Canvas
       var self = this;
       self.canvas = this.myBoard.nativeElement;
       self.context = self.canvas.getContext("2d");
       self.canvas.width  = document.getElementById('board-box').offsetWidth;
       self.canvas.height = window.innerHeight - 200;
-      
       self.context.lineWidth = 2;
 
-      var mergeDown = Observable.merge(Observable.fromEvent(self.canvas, 'touchstart'), 
-                                       Observable.fromEvent(self.canvas, 'mousedown'));
-                                       
-      var mergeUps = Observable.merge(Observable.fromEvent(self.canvas, 'touchend'), 
-                                       Observable.fromEvent(self.canvas, 'mouseup'));
+      //Canvas Observers
+      var mousedown = Observable.fromEvent(self.canvas, 'mousedown');     
+      var mouseup = Observable.fromEvent(self.canvas, 'mouseup');
+      var mousemove = Observable.fromEvent(self.canvas, 'mousemove');
       
-      var mergeMoves = Observable.merge(Observable.fromEvent(self.canvas, 'touchmove'), 
-                                       Observable.fromEvent(self.canvas, 'mousemove'));
-      
-      var mergeDrags = mergeDown.map(downEvent => {
+      var mouseDrags = mousedown.map(downEvent => {
           self.currentLine = self.lines.push({ colour: self.selectedColor});
-          return mergeMoves.takeUntil(mergeUps).map(drag => {
+          return mousemove.takeUntil(mouseup).map(drag => {
               return this.getOffset(drag);
           });
       });       
-      mergeDrags.subscribe(drags=>{
+      mouseDrags.subscribe(drags=>{
         this.prevPoint = "";
         drags.subscribe(function (move) {
               console.log('move', {x: move.x, y: move.y});
@@ -117,8 +72,6 @@ export class Angular2FirebaseAppComponent {
   }
   
   drawCanvasLine(line) {
-    //   var colour = line.val().colour;
-    //   var points = line.val().points;
       var colour = line.colour;
       var points = line.points;
       var point;
@@ -138,9 +91,9 @@ export class Angular2FirebaseAppComponent {
       this.prevPoint = null;
   }
   
-  clearCanvas() {
+  onCleanCanvas() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.lines.remove();
   }
-
 }
 
