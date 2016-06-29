@@ -1,4 +1,6 @@
 #board{
   border-style: solid;
   border-width: 1px;
+  /*width:100%;
+  height:auto;*/
 }
