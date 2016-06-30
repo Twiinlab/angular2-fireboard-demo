@@ -4,7 +4,7 @@
 ## Install
 
 ```bash
-git clone https://github.com/Twiinlab/angular2-firebase.git
+git clone https://github.com/Twiinlab/angular2-firebase-demo.git
 ```
 
 Dependency Download
